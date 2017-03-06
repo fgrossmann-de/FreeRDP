@@ -30,6 +30,22 @@
 #include <winpr/string.h>
 #include <winpr/heap.h>
 
+#ifndef sprintf_s
+static INLINE INT sprintf_s(char* buffer, size_t sizeOfBuffer, const char* format, ...)
+{
+	memset(buffer, 0, sizeOfBuffer);
+	va_list argptr;
+
+	int ret;
+
+	va_start(argptr, format);
+	ret = vsprintf(buffer, format, argptr);
+	va_end(argptr);
+
+	return ret;
+}
+#endif
+
 #ifndef _WIN32
 
 #ifndef _rotl

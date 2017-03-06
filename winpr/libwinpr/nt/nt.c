@@ -46,7 +46,7 @@ VOID _InitializeObjectAttributes(POBJECT_ATTRIBUTES InitializedAttributes,
 		PUNICODE_STRING ObjectName, ULONG Attributes, HANDLE RootDirectory,
 		PSECURITY_DESCRIPTOR SecurityDescriptor)
 {
-#if defined(_WIN32) && !defined(_UWP)
+#if defined(_WIN32) && !defined(_UWP) && !defined(WINCE)
 	InitializeObjectAttributes(InitializedAttributes, ObjectName,
 		Attributes, RootDirectory, SecurityDescriptor);
 #else
@@ -59,8 +59,9 @@ VOID _InitializeObjectAttributes(POBJECT_ATTRIBUTES InitializedAttributes,
 #endif
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(WINCE)
 
+#ifndef WINCE
 
 #include <pthread.h>
 #include <winpr/crt.h>
@@ -108,7 +109,7 @@ PTEB NtCurrentTeb(void)
 	}
 	return teb;
 }
-
+#endif
 /**
  * RtlInitAnsiString routine:
  * http://msdn.microsoft.com/en-us/library/windows/hardware/ff561918/
@@ -376,7 +377,7 @@ NTSTATUS _NtWaitForSingleObject(HANDLE Handle, BOOLEAN Alertable, PLARGE_INTEGER
 #endif
 }
 
-#else
+#elif defined(_WIN32) && !defined(WINCE)
 
 #include <winpr/synch.h>
 

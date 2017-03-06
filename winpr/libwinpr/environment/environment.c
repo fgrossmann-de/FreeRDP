@@ -567,7 +567,6 @@ BOOL SetEnvironmentVariableEBA(LPSTR* envBlock, LPCSTR lpName, LPCSTR lpValue)
 
 		if (!envstr)
 			return FALSE;
-
 		sprintf_s(envstr, length, "%s=%s", lpName, lpValue);
 	}
 	else

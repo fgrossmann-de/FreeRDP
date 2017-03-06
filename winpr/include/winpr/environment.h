@@ -117,6 +117,8 @@ WINPR_API BOOL FreeEnvironmentStringsW(LPWCH lpszEnvironmentBlock);
 
 #endif
 
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -27,7 +27,7 @@
  * Standard Clipboard Formats
  */
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(WINCE)
 
 #define MB_OK					0x00000000L
 #define MB_OKCANCEL				0x00000001L

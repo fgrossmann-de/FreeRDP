@@ -63,7 +63,8 @@
 /* ARM (_M_ARM) */
 
 #if defined(__arm__) || defined(__thumb__) || \
-	defined(__TARGET_ARCH_ARM) || defined(__TARGET_ARCH_THUMB)
+	defined(__TARGET_ARCH_ARM) || defined(__TARGET_ARCH_THUMB) || \
+	defined(_ARM_)
 #ifndef _M_ARM
 #define _M_ARM		1
 #endif
