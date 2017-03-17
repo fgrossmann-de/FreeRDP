@@ -29,6 +29,11 @@
 
 #include <winpr/environment.h>
 
+#ifdef WINCE
+/*Environment Variables have to be emulated through Registry under CE*/
+static const wchar_t lpGlobalEnvSubKey[] = _T("Software\\WINPR\\Environment");
+#endif
+
 #ifndef _WIN32
 
 #define stricmp strcasecmp
@@ -134,11 +139,11 @@ BOOL NeedCurrentDirectoryForExePathW(LPCWSTR ExeName)
 
 #endif
 
-#if !defined(_WIN32) || defined(_UWP)
+#if !defined(_WIN32) || defined(_UWP) || defined(WINCE)
 
 DWORD GetEnvironmentVariableA(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize)
 {
-#if !defined(_UWP)
+#if !defined(_UWP) && !defined(WINCE)
 	int length;
 	char* env = NULL;
 
@@ -159,6 +164,56 @@ DWORD GetEnvironmentVariableA(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize)
 	lpBuffer[length] = '\0';
 
 	return length;
+#elif defined(WINCE)
+	LONG   nRet;
+    HKEY   hKey;
+	LPWSTR lpValueName = NULL;
+    LPBYTE lpData = NULL;
+    DWORD  dwType = REG_SZ;
+    DWORD  cbMaxSubKeyLen = 0;
+    DWORD  cbMaxValueNameLen = 0;
+    DWORD  cbMaxValueLen = 0;
+    TCHAR szBuf[REG_VALUE_SIZE_MAX];
+
+    assert(nSize <= REG_VALUE_SIZE_MAX);
+    assert(wcslen(lpName) <= REG_VALUE_NAME_SIZE_MAX);
+
+    /* nSize - length of output buffer in characters. */
+    memset(szBuf, 0, REG_VALUE_SIZE_MAX);
+    memset(lpBuffer, 0, nSize * sizeof(wchar_t));
+
+	nRet = RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpGlobalEnvSubKey, 0, 0, &hKey);
+	if (ERROR_SUCCESS != nRet)
+	{
+		wcsncpy(lpBuffer, _T(""), 2);
+		return 0;
+	}
+
+    nRet = RegQueryInfoKey(hKey, NULL, NULL, NULL, NULL, &cbMaxSubKeyLen,
+                          NULL, NULL, &cbMaxValueNameLen, &cbMaxValueLen,
+                          NULL, NULL);
+	if (ERROR_SUCCESS != nRet)
+	{
+		wcsncpy(lpBuffer, _T(""), 2);
+		return 0;
+    }
+
+    lpData = (LPBYTE)szBuf;
+	nRet = RegQueryValueEx(hKey, lpName, NULL, &dwType, lpData, &cbMaxValueLen);
+	RegCloseKey(hKey);
+	if (ERROR_SUCCESS != nRet)
+	{
+		wcsncpy(lpBuffer, _T(""), 2);
+		return 0;
+	}
+
+    /* cbMaxValueLen - length, in bytes, of the longest data component,
+     * including NULL character
+     */
+    wcsncpy(lpBuffer, szBuf, cbMaxValueLen - 1);
+    cbMaxValueLen = wcslen(szBuf);
+
+	return cbMaxValueLen;
 #else
 	SetLastError(ERROR_ENVVAR_NOT_FOUND);
 	return 0;
@@ -173,7 +228,7 @@ DWORD GetEnvironmentVariableW(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize)
 
 BOOL SetEnvironmentVariableA(LPCSTR lpName, LPCSTR lpValue)
 {
-#if !defined(_UWP)
+#if !defined(_UWP) && !defined(WINCE)
 	if (!lpName)
 		return FALSE;
 
@@ -189,6 +244,32 @@ BOOL SetEnvironmentVariableA(LPCSTR lpName, LPCSTR lpValue)
 	}
 
 	return TRUE;
+#elif defined(WINCE)
+	LONG   nRet;
+    HKEY   hKey;
+    LPWSTR lpClass = _T("");
+    LPBYTE lpData = NULL;
+    DWORD  cbData = 0;
+    DWORD  dwType = REG_SZ;
+    DWORD  dwDisposition = 0;
+
+    cbData = ((wcslen(lpValue) + 1) * sizeof(*lpValue));
+    
+    assert(wcslen(lpName) <= REG_VALUE_NAME_SIZE_MAX);
+    assert(cbData <= REG_VALUE_SIZE_MAX);
+
+    nRet = RegCreateKeyEx(HKEY_LOCAL_MACHINE, lpGlobalEnvSubKey, 0, lpClass,
+                          REG_OPTION_NON_VOLATILE, 0, NULL, &hKey, &dwDisposition);
+	if (ERROR_SUCCESS != nRet)
+	{
+		return FALSE;
+	}
+ 
+    lpData = (LPBYTE)lpValue;
+    nRet = RegSetValueEx(hKey, lpName, 0, dwType, lpData, cbData); 
+    RegCloseKey(hKey);
+	
+	return (ERROR_SUCCESS == nRet)
 #else
 	return FALSE;
 #endif

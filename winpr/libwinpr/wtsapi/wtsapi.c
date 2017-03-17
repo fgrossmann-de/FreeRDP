@@ -732,7 +732,7 @@ static void InitializeWtsApiStubs_Env()
 	if (g_WtsApi)
 		return;
 
-	nSize = GetEnvironmentVariableA(wts, NULL, 0);
+	nSize = GetEnvironmentVariable(wts, NULL, 0);
 
 	if (!nSize)
 		return;

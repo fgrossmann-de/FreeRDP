@@ -20,7 +20,7 @@
 #ifndef WINPR_DSPARSE_H
 #define WINPR_DSPARSE_H
 
-#if defined(_WIN32) && !defined(_UWP)
+#if defined(_WIN32) && !defined(_UWP) && !defined(WINCE)
 
 #include <winpr/windows.h>
 #include <winpr/rpc.h>
@@ -28,6 +28,11 @@
 #include <ntdsapi.h>
 
 #else
+
+#ifdef _WIN32
+#include <winpr/windows.h>
+#include <winpr/rpc.h>
+#endif
 
 #include <winpr/crt.h>
 #include <winpr/winpr.h>

@@ -280,6 +280,12 @@ WINPR_API BOOL DeleteTimerQueueTimer(HANDLE TimerQueue, HANDLE Timer, HANDLE Com
 #define InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags) InitializeCriticalSectionAndSpinCount(lpCriticalSection, dwSpinCount)
 #endif
 
+#ifdef WINCE
+#ifndef InitializeCriticalSectionAndSpinCount
+WINPR_API BOOL InitializeCriticalSectionAndSpinCount(LPCRITICAL_SECTION lpCriticalSection, DWORD dwSpinCount);
+#endif
+#endif
+
 #ifndef _RTL_RUN_ONCE_DEF
 #define _RTL_RUN_ONCE_DEF
 

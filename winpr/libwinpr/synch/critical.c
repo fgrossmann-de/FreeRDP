@@ -247,3 +247,18 @@ VOID DeleteCriticalSection(LPCRITICAL_SECTION lpCriticalSection)
 }
 
 #endif
+
+#ifdef WINCE
+#ifndef InitializeCriticalSectionAndSpinCount /*CE 5 doesnt have this*/
+BOOL InitializeCriticalSectionAndSpinCount(
+	_Out_ LPCRITICAL_SECTION lpCriticalSection,
+	_In_ DWORD dwSpinCount
+	){
+		/*CE is singleprocessor only, on SP SpinCount is ignored, so
+		just do a normal Initialisation - the CE one doesn't have a
+		SpinCount anyway*/
+		InitializeCriticalSection(lpCriticalSection);
+		return !STATUS_SUCCESS;
+}
+#endif
+#endif
